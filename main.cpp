@@ -13,6 +13,8 @@ std::string what () {
         return "Expected result and output differ\n";
     }
 };
+
+
 std::string exec(const char* cmd) {
     std::array<char, 128> buffer;
     std::string result;
@@ -25,25 +27,27 @@ std::string exec(const char* cmd) {
     }
     return result;
 }
+
+
 int main(int argc, char* argv[]) {
-    std::string path = "./Submissions/";
-    std::ifstream inputFile("tests.txt");
+    std::ifstream inputTestFile("tests.txt");
     std::string a, b, c;
     std::string arr_a[1000],arr_b[1000],arr_c[1000];
     int i = 0;
-    while (inputFile >> a>> b>> c)
+    while (inputTestFile >> a>> b>> c)
     {   
         arr_a[i]=a;
         arr_b[i]=b;
         arr_c[i]=c; 
         i++;
     }
-    inputFile.close();
+    inputTestFile.close();
+    std::string subm_path = "./Submissions/";
     char buffer[100];
-    for (const auto & entry : std::filesystem::directory_iterator(path)){
+    for (const auto & entry : std::filesystem::directory_iterator(subm_path)){
         std::string file_path = std::filesystem::absolute(entry.path()).string();
         std::string cmd = std::string("g++ ") + file_path + " -o test";
-        std::cout<<cmd <<std::endl;
+        std::cout<<cmd<<std::endl;
         char* char_arr = &cmd[0];
         std::cout<<exec(char_arr);
         try{

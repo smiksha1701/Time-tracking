@@ -1,12 +1,5 @@
 import os 
-import platform
 import random
-
-is_windows = any(platform.win32_ver())
-if is_windows:
-    sep = "\\"
-else:
-    sep = "/"
 curpath = os.getcwd()
 tests_path = os.path.join(curpath,"tests.txt")
 with open(tests_path, "w") as f:
