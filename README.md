@@ -1,13 +1,21 @@
 # Time-Tracking API
 ## Results 
-""In order to run correctly first of all you need to find out what exactly you want to measure.""
+
+
+In order to run correctly first of all you need to find out what exactly you want to measure.
+
 Here are some configuration I made to collect data:
-1 configuration:
+
+## 1 configuration
+
+```
 Fish: Not Isolated(No sudo)
 Bash: Not Isolated
 Time: Not Isolated
 RunExec: Isolated(core 1)
 Parallel processes: 1
+```
+
 2 configuration:
 Fish: Not Isolated(No sudo)
 Bash: Not Isolated
@@ -32,6 +40,8 @@ Bash: Isolated(core 1)
 Time: Isolated(core 1)
 RunExec: Isolated(core 1)
 Parallel processes: 2
+```
+
 ## Assign core
 To assign specific cpu for my time-tracking API I was using `taskset [CPUMASK] command`(in my case `taskset 0x02 python main.py`). RunExec isolates cpu using cgroups so no additional isolation needed for it.
 [Source](https://www.xmodulo.com/run-program-process-specific-cpu-cores-linux.html)
