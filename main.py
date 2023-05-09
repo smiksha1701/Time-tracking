@@ -70,7 +70,7 @@ def time(cmd=CMD):
 
 def relb(cmd=CMD):
     # Run the specified command with restricted resources
-    proc = subprocess.run(['sudo', './runexec', '--cores', '1', '--read-only-dir', '/'] + cmd, capture_output=True)
+    proc = subprocess.run(['sudo', './runexec', ''''--no-containers',''' '--cores', '1', '--read-only-dir', '/'] + cmd, capture_output=True)
 
     # Extract the CPU time and normalize it
     REGEX = 'cputime=(\d+\.\d+)'
@@ -137,20 +137,20 @@ print(f'bash rep(mean={np.mean(bash_rep)}, std={np.std(bash_rep, ddof=1)})')
 print(f'bash obs(mean={np.mean(bash_obs)}, std={np.std(bash_obs, ddof=1)})')
 print(f'time rep(mean={np.mean(time_rep)}, std={np.std(time_rep, ddof=1)})')
 print(f'time obs(mean={np.mean(time_obs)}, std={np.std(time_obs, ddof=1)})')
-print(f'time rep(mean={np.mean(relb_rep)}, std={np.std(relb_rep, ddof=1)})')
-print(f'time obs(mean={np.mean(relb_obs)}, std={np.std(relb_obs, ddof=1)})')
+print(f'relb rep(mean={np.mean(relb_rep)}, std={np.std(relb_rep, ddof=1)})')
+print(f'relb obs(mean={np.mean(relb_obs)}, std={np.std(relb_obs, ddof=1)})')
 # This code creates a histogram of the observed run-times for each command 
 # (fish, bash, /usr/bin/time, and runexec) and displays it.
-plt.hist([fish_obs, bash_obs, time_obs, relb_obs], bins=50)
-plt.legend(['fish built-in', 'bash built-in', '/usr/bin/time', 'runexec'])
+plt.hist([fish_obs,  relb_obs], bins=50)
+plt.legend(['fish built-in' , 'runexec'])
 plt.title('Run-times distribution')
 plt.xlabel('millis')
 plt.ylabel('count')
 plt.show()
 # This code creates a cumulative histogram of the observed run-times for each command
 # (fish, bash, /usr/bin/time, and runexec) and displays it.
-plt.hist([fish_obs, bash_obs, time_obs, relb_obs], bins=50, cumulative=True)
-plt.legend(['fish built-in', 'bash built-in', '/usr/bin/time', 'runexec'])
+plt.hist([fish_obs, relb_obs], bins=50, cumulative=True)
+plt.legend(['fish built-in',  'runexec'])
 plt.title('Run-times distribution (cumulative)')
 plt.xlabel('millis')
 plt.ylabel('count')
@@ -172,3 +172,13 @@ plt.title('Scatterplot')
 plt.xlabel('rep')
 plt.ylabel('obs')
 plt.show()
+
+# To Document / TODOs
+#
+# 1. How are these experiments actually executed, i.e. how is the
+#    taskset specified? Maybe give a script to execute everything.
+# 2. Run fish also with sudo as another experiment?
+# 3. Maybe run /usr/bin/time as a separate configuration, but don't add system time? We also have to note here, that /usr/bin/time's precision is only centiseconds.
+# 3. Process Priority, i.e. what priority is given to fish? Maybe put it to `realtime`?
+# 4. Maybe look at https://gitlab.sai.jku.at/students/organization/-/issues/4
+# 5. Put everything into Gitlab
