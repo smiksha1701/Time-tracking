@@ -40,7 +40,6 @@ Bash: Isolated(core 1)
 Time: Isolated(core 1)
 RunExec: Isolated(core 1)
 Parallel processes: 2
-```
 
 ## Assign core
 To assign specific cpu for my time-tracking API I was using `taskset [CPUMASK] command`(in my case `taskset 0x02 python main.py`). RunExec isolates cpu using cgroups so no additional isolation needed for it.
