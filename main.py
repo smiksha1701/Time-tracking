@@ -70,11 +70,13 @@ def time(cmd=CMD):
 
 def relb(cmd=CMD):
     # Run the specified command with restricted resources
-    proc = subprocess.run(['sudo', './runexec', ''''--no-containers',''' '--cores', '1', '--read-only-dir', '/'] + cmd, capture_output=True)
+    cmd_arr = ['systemd-run', '--user', '--scope', '--slice=benchexec', '-p', 'Delegate=yes', './benchexec/bin/runexec', '--no-container', '--read-only-dir', '/'] + cmd
+    proc = subprocess.run(cmd_arr, capture_output=True)
+    stdout = proc.stdout.decode()
 
     # Extract the CPU time and normalize it
     REGEX = 'cputime=(\d+\.\d+)'
-    m = re.search(REGEX, proc.stdout.decode())
+    m = re.search(REGEX, stdout)
     cpu_time = normalize(float(m.group(1)), 'secs')
 
     # Read the output file and parse the last line as a float
@@ -141,8 +143,8 @@ print(f'relb rep(mean={np.mean(relb_rep)}, std={np.std(relb_rep, ddof=1)})')
 print(f'relb obs(mean={np.mean(relb_obs)}, std={np.std(relb_obs, ddof=1)})')
 # This code creates a histogram of the observed run-times for each command 
 # (fish, bash, /usr/bin/time, and runexec) and displays it.
-plt.hist([fish_obs,  relb_obs], bins=50)
-plt.legend(['fish built-in' , 'runexec'])
+plt.hist([fish_obs,  relb_obs, time_obs, bash_obs], bins=50)
+plt.legend(['fish built-in' , 'runexec', 'time', 'bash built-in'])
 plt.title('Run-times distribution')
 plt.xlabel('millis')
 plt.ylabel('count')
