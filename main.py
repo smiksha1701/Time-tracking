@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import subprocess
 import re
 import os
+import sys
 import pickle
 import numpy as np
 from tqdm import tqdm
@@ -70,10 +71,9 @@ def time(cmd=CMD):
 
 def relb(cmd=CMD):
     # Run the specified command with restricted resources
-    cmd_arr = ['systemd-run', '--user', '--scope', '--slice=benchexec', '-p', 'Delegate=yes', './benchexec/bin/runexec', '--no-container', '--read-only-dir', '/'] + cmd
+    cmd_arr = ['systemd-run', '--user', '--scope', '--slice=benchexec', '-p', 'Delegate=yes', 'benchexec/bin/runexec', '--no-container', '--read-only-dir', '/'] + cmd
     proc = subprocess.run(cmd_arr, capture_output=True)
     stdout = proc.stdout.decode()
-
     # Extract the CPU time and normalize it
     REGEX = 'cputime=(\d+\.\d+)'
     m = re.search(REGEX, stdout)
@@ -124,56 +124,56 @@ def load_or_run(filename, func, *args):
         pickle.dump(res, f)
     # Return the result of the function call
     return res
-
+if __name__ == "__main__":
 # Load or run the function for each program and store the results in variables
-fish_rep, fish_obs = load_or_run('fish.pkl', run, fish)
-bash_rep, bash_obs = load_or_run('bash.pkl', run, bash)
-time_rep, time_obs = load_or_run('time.pkl', run, time)
-relb_rep, relb_obs = load_or_run('relb.pkl', run, relb)
+    fish_rep, fish_obs = load_or_run('{}fish.pkl'.format(sys.argv[1]), run, fish)
+    bash_rep, bash_obs = load_or_run('{}bash.pkl'.format(sys.argv[1]), run, bash)
+    time_rep, time_obs = load_or_run('{}time.pkl'.format(sys.argv[1]), run, time)
+    relb_rep, relb_obs = load_or_run('{}relb.pkl'.format(sys.argv[1]), run, relb)
 # This code calculates the mean and standard deviation of the reported and observed
 # times for each command (fish, bash, /usr/bin/time, and runexec) and prints the results
 # in a formatted string.
-print(f'fish rep(mean={np.mean(fish_rep)}, std={np.std(fish_rep, ddof=1)})')
-print(f'fish obs(mean={np.mean(fish_obs)}, std={np.std(fish_obs, ddof=1)})')
-print(f'bash rep(mean={np.mean(bash_rep)}, std={np.std(bash_rep, ddof=1)})')
-print(f'bash obs(mean={np.mean(bash_obs)}, std={np.std(bash_obs, ddof=1)})')
-print(f'time rep(mean={np.mean(time_rep)}, std={np.std(time_rep, ddof=1)})')
-print(f'time obs(mean={np.mean(time_obs)}, std={np.std(time_obs, ddof=1)})')
-print(f'relb rep(mean={np.mean(relb_rep)}, std={np.std(relb_rep, ddof=1)})')
-print(f'relb obs(mean={np.mean(relb_obs)}, std={np.std(relb_obs, ddof=1)})')
+    print(f'fish rep(mean={np.mean(fish_rep)}, std={np.std(fish_rep, ddof=1)})')
+    print(f'fish obs(mean={np.mean(fish_obs)}, std={np.std(fish_obs, ddof=1)})')
+    print(f'bash rep(mean={np.mean(bash_rep)}, std={np.std(bash_rep, ddof=1)})')
+    print(f'bash obs(mean={np.mean(bash_obs)}, std={np.std(bash_obs, ddof=1)})')
+    print(f'time rep(mean={np.mean(time_rep)}, std={np.std(time_rep, ddof=1)})')
+    print(f'time obs(mean={np.mean(time_obs)}, std={np.std(time_obs, ddof=1)})')
+    print(f'relb rep(mean={np.mean(relb_rep)}, std={np.std(relb_rep, ddof=1)})')
+    print(f'relb obs(mean={np.mean(relb_obs)}, std={np.std(relb_obs, ddof=1)})')
 # This code creates a histogram of the observed run-times for each command 
 # (fish, bash, /usr/bin/time, and runexec) and displays it.
-plt.hist([fish_obs,  relb_obs, time_obs, bash_obs], bins=50)
-plt.legend(['fish built-in' , 'runexec', 'time', 'bash built-in'])
-plt.title('Run-times distribution')
-plt.xlabel('millis')
-plt.ylabel('count')
-plt.show()
+    plt.hist([fish_obs,  relb_obs, time_obs, bash_obs], bins=50)
+    plt.legend(['fish built-in' , 'runexec', 'time', 'bash built-in'])
+    plt.title('Run-times distribution')
+    plt.xlabel('millis')
+    plt.ylabel('count')
+    plt.show()
 # This code creates a cumulative histogram of the observed run-times for each command
 # (fish, bash, /usr/bin/time, and runexec) and displays it.
-plt.hist([fish_obs, relb_obs], bins=50, cumulative=True)
-plt.legend(['fish built-in',  'runexec'])
-plt.title('Run-times distribution (cumulative)')
-plt.xlabel('millis')
-plt.ylabel('count')
-plt.show()
+    plt.hist([fish_obs, relb_obs], bins=50, cumulative=True)
+    plt.legend(['fish built-in',  'runexec'])
+    plt.title('Run-times distribution (cumulative)')
+    plt.xlabel('millis')
+    plt.ylabel('count')
+    plt.show()
 # This code creates a scatter plot of the reported and observed times for each command
 # (fish, bash, /usr/bin/time, and runexec) and displays it. The plot also includes a 
 # line with a slope of 1 to help visualize the relationship between the reported and 
 # observed times.
-plt.figure(figsize=(20, 20))
-plt.scatter(fish_rep, fish_obs)
-plt.scatter(bash_rep, bash_obs)
-plt.scatter(time_rep, time_obs)
-plt.scatter(relb_rep, relb_obs)
-times = fish_rep + fish_obs + bash_rep + bash_obs + time_rep + time_obs + relb_obs + relb_rep
-bounds = [np.min(times), np.max(times)]
-plt.plot(bounds, bounds)
-plt.legend(['fish', 'bash', '/usr/bin/time', 'runexec' , 'y = x'])
-plt.title('Scatterplot')
-plt.xlabel('rep')
-plt.ylabel('obs')
-plt.show()
+    plt.figure(figsize=(20, 20))
+    plt.scatter(fish_rep, fish_obs)
+    plt.scatter(bash_rep, bash_obs)
+    plt.scatter(time_rep, time_obs)
+    plt.scatter(relb_rep, relb_obs)
+    times = fish_rep + fish_obs + bash_rep + bash_obs + time_rep + time_obs + relb_obs + relb_rep
+    bounds = [np.min(times), np.max(times)]
+    plt.plot(bounds, bounds)
+    plt.legend(['fish', 'bash', '/usr/bin/time', 'runexec' , 'y = x'])
+    plt.title('Scatterplot')
+    plt.xlabel('rep')
+    plt.ylabel('obs')
+    plt.show()
 
 # To Document / TODOs
 #
