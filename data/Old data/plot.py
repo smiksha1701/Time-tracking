@@ -1,10 +1,11 @@
-import matplotlib.pyplot as plt
-import pickle
-import numpy as np
-def load(filename):
+#import matplotlib.pyplot as plt
+#import pickle
+#import numpy as np
+"""def load(filename):
     # If it does, open the file and load the stored data using pickle
     with open(filename, 'rb') as f:
-        return pickle.load(f)
+        return pickle.load(f)"""
+"""
 fish_file = input("fish file")
 bash_file = input("bash file")
 time_file = input("time file")
@@ -18,10 +19,46 @@ plt.legend(['fish built-in' , 'runexec'])
 plt.title('Run-times distribution')
 plt.xlabel('millis')
 plt.ylabel('count')
-plt.show()
+plt.show()"""
+import plotly.graph_objects as go
+import pickle
+import numpy as np
+def load(filename):
+    # If it does, open the file and load the stored data using pickle
+    with open(filename, 'rb') as f:
+        return pickle.load(f)
+file_pattern = ""
+relb_files = ['0par_ntbrelb.pkl', '1par_ntbrelb.pkl','2par_ntbrelb.pkl','3par_ntbrelb.pkl','4par_ntbrelb.pkl','5par_ntbrelb.pkl','6par_ntbrelb.pkl']
+
+relb_obs_list = []
+
+for relb_file in relb_files:
+    relb_rep, relb_obs = load(relb_file)
+    relb_obs_list.append(relb_obs)
+
+fig = go.Figure()
+
+for i, relb_obs in enumerate(relb_obs_list):
+    fig.add_trace(go.Histogram(x=relb_obs, name=f'num of proc {i} {np.mean(relb_obs)}', xbins=dict(
+        start=0,
+        end=2300,
+        size=10
+    ),))
+
+fig.update_layout(
+    title='Run-times distribution (relb)',
+    xaxis_title='millis',
+    yaxis_title='count',
+    barmode='overlay',
+    bargap=0.1
+)
+
+fig.update_traces(opacity=0.75)
+
+fig.show()
 # This code creates a cumulative histogram of the observed run-times for each command
 # (fish, bash, /usr/bin/time, and runexec) and displays it.
-plt.hist([fish_obs, relb_obs], bins=50, cumulative=True)
+"""plt.hist([fish_obs, relb_obs], bins=50, cumulative=True)
 plt.legend(['fish built-in',  'runexec'])
 plt.title('Run-times distribution (cumulative)')
 plt.xlabel('millis')
@@ -44,3 +81,4 @@ plt.title('Scatterplot')
 plt.xlabel('rep')
 plt.ylabel('obs')
 plt.show()
+"""
