@@ -1,6 +1,8 @@
 #import matplotlib.pyplot as plt
-#import pickle
-#import numpy as np
+import plotly.graph_objects as go
+import pickle
+import numpy as np
+import os
 """def load(filename):
     # If it does, open the file and load the stored data using pickle
     with open(filename, 'rb') as f:
@@ -20,42 +22,63 @@ plt.title('Run-times distribution')
 plt.xlabel('millis')
 plt.ylabel('count')
 plt.show()"""
-import plotly.graph_objects as go
-import pickle
-import numpy as np
+
 def load(filename):
     # If it does, open the file and load the stored data using pickle
     with open(filename, 'rb') as f:
         return pickle.load(f)
 file_pattern = ""
+data_folder = 'data' 
 relb_files = ['0par_ntbrelb.pkl', '1par_ntbrelb.pkl','2par_ntbrelb.pkl','3par_ntbrelb.pkl','4par_ntbrelb.pkl','5par_ntbrelb.pkl','6par_ntbrelb.pkl']
 
 relb_obs_list = []
-
+relb_rep_list = []
 for relb_file in relb_files:
-    relb_rep, relb_obs = load(relb_file)
+    path = os.path.join(os.getcwd(), data_folder, 'Usefull_data', relb_file)
+    relb_rep, relb_obs = load(path)
+    relb_rep_list.append(relb_rep)
     relb_obs_list.append(relb_obs)
 
 fig = go.Figure()
+def plot_obs():
+    for i, relb_obs in enumerate(relb_obs_list):
+        fig.add_trace(go.Histogram(x=relb_obs, name=f'num of proc {i} {np.mean(relb_obs)}', xbins=dict(
+            start=0,
+            end=2300,
+            size=10
+        ),))
 
-for i, relb_obs in enumerate(relb_obs_list):
-    fig.add_trace(go.Histogram(x=relb_obs, name=f'num of proc {i} {np.mean(relb_obs)}', xbins=dict(
-        start=0,
-        end=2300,
-        size=10
-    ),))
+    fig.update_layout(
+        title='Run-times distribution (relb)',
+        xaxis_title='millis',
+        yaxis_title='count',
+        barmode='overlay',
+        bargap=0.1
+    )
 
-fig.update_layout(
-    title='Run-times distribution (relb)',
-    xaxis_title='millis',
-    yaxis_title='count',
-    barmode='overlay',
-    bargap=0.1
-)
+    fig.update_traces(opacity=0.75)
 
-fig.update_traces(opacity=0.75)
+    fig.show()
+def plot_rep():
+    for i, relb_rep in enumerate(relb_rep_list):
+        fig.add_trace(go.Histogram(x=relb_rep, name=f'num of proc {i} {np.mean(relb_rep)}', xbins=dict(
+            start=0,
+            end=2300,
+            size=10
+        ),))
 
-fig.show()
+    fig.update_layout(
+        title='Run-times distribution (relb)',
+        xaxis_title='millis',
+        yaxis_title='count',
+        barmode='overlay',
+        bargap=0.1
+    )
+
+    fig.update_traces(opacity=0.75)
+
+    fig.show()
+plot_rep()
 # This code creates a cumulative histogram of the observed run-times for each command
 # (fish, bash, /usr/bin/time, and runexec) and displays it.
 """plt.hist([fish_obs, relb_obs], bins=50, cumulative=True)

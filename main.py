@@ -17,6 +17,11 @@ def fish(cmd=CMD):
     # Run the specified command and capture the output
     proc = subprocess.run(['fish', '-c', f'time {" ".join(cmd)}'], capture_output=True)
     rep = float(proc.stdout.decode())
+    # Extract the real time and normalize it
+    REGEX = 'Executed in\s*([\d\.]*)\s(\w*)'
+    m = re.search(REGEX, proc.stderr.decode())
+    real_time, unit = float(m.group(1)), m.group(2)
+    real_time = normalize(real_time, unit)
 
     # Extract the user time and normalize it
     REGEX = 'usr time\s*([\d\.]*)\s(\w*)'
@@ -31,14 +36,18 @@ def fish(cmd=CMD):
     sys_time = normalize(sys_time, unit)
 
     # Return the combined time (user + system) and the reported time
-    return rep, usr_time + sys_time
+    return real_time, rep, usr_time + sys_time
 
 def bash(cmd=CMD):
     # Run the specified command and capture the output
     proc = subprocess.run(['bash', '-c', f'time {" ".join(cmd)}'], capture_output=True)
     rep = float(proc.stdout.decode())
+    # Extract the real time and normalize it
+    REGEX = 'real\s*([\d\.]*)m([\d\.]*)s'
+    m = re.search(REGEX, proc.stderr.decode())
+    minutes, seconds = float(m.group(1)), float(m.group(2))
+    real_time = normalize(seconds + 60 * minutes, 'secs')
 
-    # Extract the user time and normalize it
     REGEX = 'user\s*([\d\.]*)m([\d\.]*)s'
     m = re.search(REGEX, proc.stderr.decode())
     minutes, seconds = float(m.group(1)), float(m.group(2))
@@ -51,7 +60,7 @@ def bash(cmd=CMD):
     sys_time = normalize(seconds + 60 * minutes, 'secs')
 
     # Return the combined time (user + system) and the reported time
-    return rep, usr_time + sys_time
+    return real_time, rep, usr_time + sys_time
 
 def time(cmd=CMD):
     # Run the specified command and capture the output
@@ -59,21 +68,26 @@ def time(cmd=CMD):
     rep = float(proc.stdout.decode())
 
     # Extract the user time and normalize it
-    REGEX = '([\d\.]*)user\s([\d\.]*)system'
+    REGEX = '([\d\.]*)user\s([\d\.]*)system\s([\d\.]*)elapsed'
     m = re.search(REGEX, proc.stderr.decode())
     usr_time = normalize(float(m.group(1)), 'secs')
     
     # Extract the system time and normalize it
     sys_time = normalize(float(m.group(2)), 'secs')
+    real_time = normalize(float(m.group(3)), 'secs')
 
     # Return the combined time (user + system) and the reported time
-    return rep, usr_time + sys_time
+    return real_time, rep, usr_time + sys_time
 
 def relb(cmd=CMD):
     # Run the specified command with restricted resources
     cmd_arr = ['systemd-run', '--user', '--scope', '--slice=benchexec', '-p', 'Delegate=yes', 'benchexec/bin/runexec', '--no-container', '--read-only-dir', '/'] + cmd
     proc = subprocess.run(cmd_arr, capture_output=True)
     stdout = proc.stdout.decode()
+    # Extract the walltime and normalize it
+    REGEX = 'walltime=(\d+\.\d+)'
+    m = re.search(REGEX, stdout)
+    wall_time = normalize(float(m.group(1)), 'secs')
     # Extract the CPU time and normalize it
     REGEX = 'cputime=(\d+\.\d+)'
     m = re.search(REGEX, stdout)
@@ -97,7 +111,7 @@ def relb(cmd=CMD):
                 print('The last line in the file is not a float')
 
     # Return the reported time and the CPU time
-    return rep, cpu_time
+    return wall_time, rep, cpu_time
 
 def run(method, n=1000):
     reported, observed = [], []
