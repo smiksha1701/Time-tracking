@@ -68,7 +68,7 @@ def time(cmd=CMD):
     rep = float(proc.stdout.decode())
 
     # Extract the user time and normalize it
-    REGEX = '([\d\.]*)user\s([\d\.]*)system\s([\d\.]*)elapsed'
+    REGEX = '([\d\.]*)user\s([\d\.]*)system\s\d*:([\d\.]*)elapsed'
     m = re.search(REGEX, proc.stderr.decode())
     usr_time = normalize(float(m.group(1)), 'secs')
     
